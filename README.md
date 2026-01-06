@@ -1,4 +1,4 @@
-# Sendify Code Challenge 2026
+# DB Schenker Package Scraper
 
 This application supports both **SSE** and **STDIO** connections for MCP server integration.
 
