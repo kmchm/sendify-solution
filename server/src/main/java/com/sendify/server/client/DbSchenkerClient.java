@@ -15,8 +15,6 @@ import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import com.sendify.server.dto.external.LandSttResponse;
-import com.sendify.server.dto.external.ShipmentResponse;
-import com.sendify.server.dto.external.TripResponse;
 import com.sendify.server.dto.internal.ShipmentDetailsDto;
 
 import lombok.RequiredArgsConstructor;
@@ -59,8 +57,6 @@ public class DbSchenkerClient {
 
             Map<String, String> capturedResponses = new ConcurrentHashMap<>();
 
-            System.out.println("Navigating to: " + trackingUrl + oldReference);
-
             try {
                 page.waitForResponse(
                         response -> {
@@ -77,48 +73,32 @@ public class DbSchenkerClient {
                                     return false;
                                 }
 
-                                if (url.contains("shipments?query=") && !capturedResponses.containsKey("shipment")) {
-                                    System.out.println("Caught Shipment Data");
-                                    capturedResponses.put("shipment", body);
-                                }
-
                                 if (url.contains("LandStt:") && !capturedResponses.containsKey("land")) {
                                     System.out.println("Caught Land Status");
                                     capturedResponses.put("land", body);
                                 }
 
-                                if (url.contains("trip") && !capturedResponses.containsKey("trip")) {
-                                    System.out.println("Caught Trip Status");
-                                    capturedResponses.put("trip", body);
-                                }
                             } catch (Exception e) {
                                 if (e.getMessage() == null || !e.getMessage().contains("Missing content of resource for given requestId")) {
                                     log.error("Error reading response body: {}", e.getMessage());
                                 }
                             }
 
-                            return capturedResponses.containsKey("shipment")
-                            && capturedResponses.containsKey("land") && capturedResponses.containsKey("trip");
+                            return capturedResponses.containsKey("land");
                         },
-                        () -> page.navigate(trackingUrl + oldReference, new Page.NavigateOptions().setTimeout(60000))
+                        () -> page.navigate(trackingUrl + oldReference, new Page.NavigateOptions().setTimeout(10000))
                 );
             } catch (Exception e) {
                 log.error(e.getMessage());
             }
 
-            String shipmentJson = capturedResponses.get("shipment");
             String landJson = capturedResponses.get("land");
-            String tripJson = capturedResponses.get("trip");
 
-            boolean allGood = shipmentJson != null || landJson != null || tripJson != null;
-
-            if (!allGood) {
-                throw new RuntimeException("Failed to capture shipment data for reference: " + oldReference);
+            if (landJson == null) {
+                throw new RuntimeException("Tracking reference " + oldReference + " not found. Please verify the ID.");
             }
 
-            ShipmentResponse shipmentResponse = objectMapper.readValue(shipmentJson, ShipmentResponse.class);
             LandSttResponse landSttResponse = objectMapper.readValue(landJson, LandSttResponse.class);
-            TripResponse tripResponse = objectMapper.readValue(tripJson, TripResponse.class);
 
             landSttResponse.getPackages().forEach(packageItem -> {
                 log.info("Package ID: {}", packageItem.getId());
