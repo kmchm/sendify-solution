@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -29,13 +31,31 @@ public class DbSchenkerClient {
     private String trackingUrl;
 
     private final ObjectMapper objectMapper;
+    private Playwright playwright;
+    private Browser browser;
+
+    @PostConstruct
+    public void init() {
+        playwright = Playwright.create();
+        BrowserType.LaunchOptions launchOptions = new BrowserType.LaunchOptions().setHeadless(true);
+        browser = playwright.webkit().launch(launchOptions);
+    }
+
+    @PreDestroy
+    public void cleanup() {
+        if (browser != null) {
+            browser.close();
+        }
+        if (playwright != null) {
+            playwright.close();
+        }
+    }
 
     public ShipmentDetailsDto trackShipment(String oldReference) {
         try (Playwright playwright = Playwright.create()) {
 
-            BrowserType.LaunchOptions launchOptions = new BrowserType.LaunchOptions().setHeadless(true);
-            Browser browser = playwright.webkit().launch(launchOptions);
             Page page = browser.newPage();
+            page.route("**/*.{png,jpg,jpeg,svg,gif,css,woff,woff2}", route -> route.abort());
 
             Map<String, String> capturedResponses = new ConcurrentHashMap<>();
 
@@ -85,8 +105,6 @@ public class DbSchenkerClient {
             } catch (Exception e) {
                 log.error(e.getMessage());
             }
-
-            browser.close();
 
             String shipmentJson = capturedResponses.get("shipment");
             String landJson = capturedResponses.get("land");
