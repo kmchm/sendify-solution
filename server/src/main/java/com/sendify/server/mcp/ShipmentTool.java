@@ -16,16 +16,10 @@ public class ShipmentTool {
 
 
     @Tool(
-            name = "Tracks a shipment using DB Schenker reference number.",
+            name = "db_schenker_tracker",
             description = """
                     Tracks a shipment using DB Schenker reference number.
-                    Returns
-                    sender information,
-                    receiver information,
-                    package details,
-                    complete tracking history for the shipment,
-                    and
-                    individual tracking events per package.
+                    Returns sender information, receiver information, package details, complete tracking history for the shipment, and individual tracking events per package.
                     """
     )
     public ShipmentDetailsDto trackShipment(
