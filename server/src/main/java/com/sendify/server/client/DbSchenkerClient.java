@@ -50,6 +50,10 @@ public class DbSchenkerClient {
     }
 
     public ShipmentDetailsDto trackShipment(String oldReference) {
+        if (oldReference.trim().isEmpty()) {
+            throw new RuntimeException("Missing tracking reference");
+        }
+
         try (Playwright playwright = Playwright.create()) {
 
             Page page = browser.newPage();
@@ -74,7 +78,6 @@ public class DbSchenkerClient {
                                 }
 
                                 if (url.contains("LandStt:") && !capturedResponses.containsKey("land")) {
-                                    System.out.println("Caught Land Status");
                                     capturedResponses.put("land", body);
                                 }
 
