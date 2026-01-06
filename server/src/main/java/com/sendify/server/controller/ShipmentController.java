@@ -12,7 +12,7 @@ import com.sendify.server.client.DbSchenkerClient;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/v1/shipments")
+@RequestMapping("/api/v1/shipments")
 @RequiredArgsConstructor
 public class ShipmentController {
 
