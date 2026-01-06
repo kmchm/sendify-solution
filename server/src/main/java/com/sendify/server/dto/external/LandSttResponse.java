@@ -38,6 +38,9 @@ public class LandSttResponse {
     @JsonProperty("packages")
     private List<PackageItem> packages;
 
+    @JsonProperty("progressBar")
+    private ProgressBar progressBar;
+
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class References {
@@ -129,5 +132,12 @@ public class LandSttResponse {
         private String date;
         private String location;
         private String countryCode;
+        private String comment;
+    }
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class ProgressBar {
+        private String activeStep;
     }
 }
