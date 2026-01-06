@@ -175,8 +175,6 @@ With Playwright, the client navigates to the tracking page and listens for speci
 
 If I had more time, I might have found a more efficient solution for bypassing these protections, but I was unsuccessful during this challenge. I am aware that using Playwright for browser automation is not an optimal solution for production environments due to its resource requirements and complexity, but it was necessary here to reliably extract data from a site with strong bot protection.
 
-Feel free to reach out if you have any questions or issues!
-
 ## About `ShipmentTool`
 
 The `ShipmentTool` class, located in the `mcp` package, encapsulates the core logic for handling MCP protocol operations within the server. It is responsible for processing shipment-related requests, transforming data between internal and external formats, and ensuring that the MCP server adheres to the expected protocol specifications.
