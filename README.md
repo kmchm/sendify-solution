@@ -1,95 +1,73 @@
-# Sendify Code Challenge: DB Schenker Shipment Tracker MCP Server
+# Sendify Code Challenge 2026
 
-## About This Challenge
-
-Complete this challenge to fast-track your application for internship or junior developer positions at Sendify. **No CV or cover letter required** - just show us what you can build.
-
-## The Task
-
-Build an MCP (Model Context Protocol) server with a tool that tracks DB Schenker shipments.
-
-### Requirements
-
-Your MCP server must expose a tool that:
-
-1. **Accepts** a DB Schenker tracking reference number as input
-2. **Returns** structured shipment information including:
-   - Sender information (name, address)
-   - Receiver information (name, address)
-   - Package details (weight, dimensions, piece count, etc.)
-   - Complete tracking history for the shipment
-   - **Bonus:** Individual tracking events per package
-
-### Data Source
-
-Use the public DB Schenker tracking website:
-```
-https://www.dbschenker.com/app/tracking-public/
-```
-
-### Example Reference Numbers
-
-Use these reference numbers for testing:
-
-| Reference Number |
-|------------------|
-| 1806203236       |
-| 1806290829       |
-| 1806273700       |
-| 1806272330       |
-| 1806271886       |
-| 1806270433       |
-| 1806268072       |
-| 1806267579       |
-| 1806264568       |
-| 1806258974       |
-| 1806256390       |
-
-## Technical Requirements
-
-- You may use **any programming language**
-- Your solution must include clear instructions on:
-  - How to set up the environment
-  - How to build/install dependencies
-  - How to run the MCP server
-  - How to test the tool
-
-## What We're Looking For
-
-- **Problem-solving ability** - How do you approach extracting data from a public web interface?
-- **Code quality** - Clean, readable, and well-structured code
-- **Documentation** - Clear setup and usage instructions
-- **Error handling** - Graceful handling of invalid references, network issues, etc.
-
-## MCP Resources
-
-If you're new to MCP (Model Context Protocol):
-- [MCP Documentation](https://modelcontextprotocol.io/)
-- [MCP SDKs](https://github.com/modelcontextprotocol)
-
-## Submission
-
-1. Create a public GitHub repository with your solution
-2. Ensure all setup instructions are included in the README
-3. Send us the link to your repository (holger@sendify.se)
-
-## What Happens Next
-
-If your submission meets our criteria, we'll invite you for a technical interview. Be prepared to:
-
-- **Walk us through your code** - Explain your design decisions and architecture
-- **Discuss trade-offs** - Why did you choose your approach over alternatives?
-- **Answer technical questions** - We may ask you to explain specific parts in detail
-- **Talk about improvements** - What would you do differently with more time?
-
-This is your code - own it and be ready to reason about every part of it.
-
-## Questions?
-
-If you need additional test reference numbers or have questions about the challenge, reach out to us:
-- Email: holger@sendify.se
-- Discord: https://discord.gg/ZCv7dc7UXG
+This application supports both **SSE** and **STDIO** connections for MCP server integration.
 
 ---
 
-Good luck! We're excited to see what you build.
+## Requirements
+
+- **[Java 21 (Oracle JDK)](https://www.oracle.com/java/technologies/downloads/#jdk21-mac)**
+- **[Maven](https://maven.apache.org/download.cgi)** (for local builds)
+- **[Docker](https://docs.docker.com/get-docker/)** and **[Docker Compose](https://docs.docker.com/compose/install/)** (for containerized runs)
+- **[Claude client](https://claude.com/download)** (for STDIO version)
+
+---
+
+## SSE Version
+
+### Running with Docker Compose
+
+To build and run the MCP server using Docker Compose:
+
+```bash
+docker compose up
+```
+
+The server will be available at [http://localhost:8081](http://localhost:8081).
+
+**Note:**
+The first build may take a few minutes as it installs all dependencies and browsers.
+
+---
+
+### Testing with MCP Inspector
+
+You can use [MCP Inspector](https://inspector.modelcontextprotocol.io/) to interactively test and inspect your MCP server.
+
+#### How to use MCP Inspector
+
+1. Start your MCP server (see instructions above).
+2. Open [MCP Inspector](https://inspector.modelcontextprotocol.io/) in your browser.
+3. Enter your server's endpoint (e.g., `http://localhost:8081`) in the Inspector.
+4. Use the Inspector to send requests and view structured responses from your MCP server.
+
+![MCP Inspector Screenshot](/media/mcp-inspector.png)
+
+---
+
+## STDIO Version
+
+1. Go to the project root and run `mvn clean package` to compile the project. The JAR file will be in `server/target`.
+2. Download a Claude client from [claude.com/download](https://claude.com/download).
+3. Open Claude > Settings > Developer > Edit Config, paste the code below and change the path to the location of your JAR file:
+
+    ```json
+    {
+      "mcpServers": {
+        "db-schenker-tracker": {
+          "command": "java",
+          "args": [
+            "-Dspring.profiles.active=stdio",
+            "-jar",
+            "/Users/kamil/Developer/Sendify-Code-Challenge-2026/server/target/server-0.0.1-SNAPSHOT.jar"
+          ]
+        }
+      }
+    }
+    ```
+
+4. Restart Claude.
+
+![Claude Example](/media/claude-example.png)
+
+Feel free to reach out if you have any questions or issues!
