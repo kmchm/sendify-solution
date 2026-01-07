@@ -41,9 +41,9 @@ You can use [MCP Inspector](https://inspector.modelcontextprotocol.io/) to inter
 #### How to use MCP Inspector
 
 1. Start your MCP server (see instructions above).
-2. Open [MCP Inspector](https://inspector.modelcontextprotocol.io/) in your browser.
-3. Enter your server's endpoint (e.g., `http://localhost:8081`) in the Inspector.
-4. Use the Inspector to send requests and view structured responses from your MCP server.
+2. Start the MCP Inspector in your browser.
+3. Enter your server's endpoint (e.g., `http://localhost:8081/mcp/sse`) in the Inspector.
+4. Use the Inspector to send requests and view structured responses from the MCP server.
 
 ![MCP Inspector Screenshot](/media/mcp-inspector.png)
 
