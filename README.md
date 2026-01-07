@@ -8,37 +8,6 @@ This application supports both **SSE** and **STDIO** connections for MCP server 
 
 This project implements an MCP server that can communicate via both SSE (Server-Sent Events) and STDIO protocols. The solution is built using Java (Spring Boot) and is designed to be easily deployable using Docker. It also supports Playwright for browser automation and testing.
 
-### Code Structure
-
--   **server/**
-    Contains the main Spring Boot application, source code, and Dockerfile.
-
-    -   **src/main/java/**
-        -   `com.sendify.server`
-            Main package for the MCP server implementation.
-            -   `controller/`
-                REST controllers for handling SSE endpoints.
-            -   `service/`
-                Business logic and MCP protocol handling.
-            -   `dto/`
-                Data transfer objects for requests and responses.
-            -   `config/`
-                Configuration classes for profiles and protocol selection.
-    -   **src/test/java/**
-        Unit and integration tests.
-    -   **Dockerfile**
-        Containerizes the server with all dependencies.
-    -   **mvnw, pom.xml**
-        Maven wrapper and build configuration.
-
--   **docker-compose.yml**
-    Defines the Docker service for running the MCP server.
-
--   **media/**
-    Contains screenshots and images for documentation.
-
----
-
 ## Requirements
 
 -   **[Java 21 (Oracle JDK)](https://www.oracle.com/java/technologies/downloads/#jdk21-mac)**
@@ -105,68 +74,6 @@ You can use [MCP Inspector](https://inspector.modelcontextprotocol.io/) to inter
 
 ![Claude Example](/media/claude-example.png)
 
----
-
-## File Descriptions
-
--   **server/**  
-    Main backend application directory.
-
-    -   **src/main/java/com/sendify/server/**  
-        Java source code for the MCP server.
-        -   **ServerApplication.java**  
-            Entry point for the Spring Boot application.
-        -   **client/DbSchenkerClient.java**  
-            Handles communication with external DB Schenker services.
-        -   **controller/ShipmentController.java**  
-            REST controller for shipment-related SSE endpoints.
-        -   **dto/external/**  
-            Data transfer objects for external API responses (`LandSttResponse.java`, `ShipmentResponse.java`, `TripResponse.java`).
-        -   **dto/internal/ShipmentDetailsDto.java**  
-            Internal DTO for shipment details.
-        -   **exception/RestExceptionHandler.java**  
-            Global exception handler for REST endpoints.
-        -   **mcp/ShipmentTool.java**  
-            MCP protocol logic and utilities.
-    -   **src/main/resources/**  
-        Application configuration and static resources.
-        -   **application.properties**  
-            Default Spring Boot configuration.
-        -   **application-sse.properties**  
-            SSE-specific configuration.
-        -   **application-stdio.properties**  
-            STDIO-specific configuration.
-        -   **static/**, **templates/**  
-            Static files and templates (if any).
-    -   **src/test/java/com/sendify/server/**  
-        Unit and integration tests.
-        -   **ServerApplicationTests.java**  
-            Main application test.
-        -   **controller/ShipmentControllerTest.java**  
-            Tests for shipment controller.
-    -   **Dockerfile**  
-        Instructions for building the Docker image, installing dependencies, and packaging the application.
-    -   **mvnw, mvnw.cmd**  
-        Maven wrapper scripts for building the project without a local Maven installation.
-    -   **pom.xml**  
-        Maven build configuration file, manages dependencies and plugins.
-    -   **HELP.md**  
-        Maven help documentation.
-
--   **docker-compose.yml**  
-    Docker Compose configuration for building and running the MCP server container.
-
--   **media/**  
-    Folder containing screenshots and images used in documentation (e.g., MCP Inspector and Claude examples).
-
--   **README.md**  
-    Project documentation, setup instructions, and usage guides.
-
--   **.gitignore**  
-    Specifies files and directories to be ignored by Git.
-
----
-
 ## About `DbSchenkerClient`
 
 The `DbSchenkerClient` class is responsible for fetching and parsing shipment tracking information from the DB Schenker website. Instead of using traditional HTTP clients or browserless scraping libraries, this solution uses **Playwright** to automate a real browser session. This approach is necessary because the DB Schenker website employs bot protection mechanisms that block standard HTTP requests and headless scraping tools.
@@ -177,7 +84,7 @@ If I had more time, I might have found a more efficient solution for bypassing t
 
 ## About `ShipmentTool`
 
-The `ShipmentTool` class, located in the `mcp` package, encapsulates the core logic for handling MCP protocol operations within the server. It is responsible for processing shipment-related requests, transforming data between internal and external formats, and ensuring that the MCP server adheres to the expected protocol specifications.
+The `ShipmentTool` class, located in the `mcp` package, encapsulates the core logic for handling MCP protocol operations within the server. It is responsible for processing shipment-related requests.
 
 This tool acts as a bridge between the business logic and the MCP interface, making it easier to maintain and extend protocol-specific functionality. By centralizing MCP operations in a dedicated class, the solution remains modular and easier to test or adapt for future protocol changes.
 
@@ -198,7 +105,7 @@ Using DTOs improves code clarity, reduces errors, and makes it easier to adapt t
 The codebase is designed to be modular and follows established best practices for maintainability and scalability:
 
 - **Separation of Concerns:**  
-  The application logic is divided into clear packages such as `controller`, `service`, `client`, `dto`, `exception`, and `mcp`. Each package has a distinct responsibility, making the code easier to understand and modify.
+  The application logic is divided into clear packages such as `controller`, `client`, `dto`, `exception`, and `mcp`. Each package has a distinct responsibility, making the code easier to understand and modify.
 
 - **Dependency Injection:**  
   Spring Boot's dependency injection is used throughout the project, promoting loose coupling and easier testing.
