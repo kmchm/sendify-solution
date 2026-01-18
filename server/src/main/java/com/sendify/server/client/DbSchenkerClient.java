@@ -38,13 +38,19 @@ public class DbSchenkerClient {
     private final LandSttResponseMapper landSttResponseMapper;
     private final DbSchenkerCaptchaSolver captchaSolver;
 
+    /**
+     * Main entry point for tracking a shipment by reference number.
+     * Throws if reference is missing or tracking fails.
+     */
     public ShipmentDetailsDto trackShipment(String referenceNumber) {
         if (referenceNumber == null || referenceNumber.trim().isEmpty()) {
             throw new TrackingReferenceMissingException("Missing tracking reference");
         }
 
         try {
+            // First, resolve the internal sttId from the reference number
             String sttId = sttNumberQuery(referenceNumber, 0, null);
+            // Then, fetch shipment details using the sttId
             return shipmentQuery(sttId, 0, null);
         } catch (CaptchaRequiredException e) {
             throw e;
@@ -53,6 +59,10 @@ public class DbSchenkerClient {
         }
     }
 
+    /**
+     * Queries the tracking API to resolve a tracking number to an internal sttId.
+     * Handles captcha challenges and retries if necessary.
+     */
     private String sttNumberQuery(String trackingNumber, int retryCount, String captcha) {
         try {
             HttpHeaders headers = buildHeaders(captcha);
@@ -68,6 +78,7 @@ public class DbSchenkerClient {
             var node = objectMapper.readTree(response.getBody());
             return node.get("result").get(0).get("id").asText();
         } catch (HttpClientErrorException e) {
+            // If captcha required, solve and retry
             String captchaSolution = handleCaptchaError(e, retryCount);
             return sttNumberQuery(trackingNumber, retryCount + 1, captchaSolution);
         } catch (Exception e) {
@@ -75,6 +86,10 @@ public class DbSchenkerClient {
         }
     }
 
+    /**
+     * Queries the shipment details using the resolved sttId.
+     * Handles captcha challenges and retries if necessary.
+     */
     private ShipmentDetailsDto shipmentQuery(String sttId, int retryCount, String captcha) {
         log.debug("shipmentQuery called with sttId={}, retryCount={}, captcha={}", sttId, retryCount, captcha != null);
         try {
@@ -91,6 +106,7 @@ public class DbSchenkerClient {
 
             LandSttResponse landSttResponse = objectMapper.readValue(landJson, LandSttResponse.class);
 
+            // Log package and event details for debugging
             landSttResponse.getPackages().forEach(packageItem -> {
                 log.info("Package ID: {}", packageItem.getId());
                 packageItem.getEvents().forEach(packageEvent -> log.info("[{}] {} - {}",
@@ -99,9 +115,11 @@ public class DbSchenkerClient {
                         packageEvent.getLocation()));
             });
 
+            // Map external response to internal DTO
             return landSttResponseMapper.map(landSttResponse);
 
         } catch (HttpClientErrorException e) {
+            // If captcha required, solve and retry
             String captchaSolution = handleCaptchaError(e, retryCount);
             return shipmentQuery(sttId, retryCount + 1, captchaSolution);
         } catch (Exception e) {
@@ -109,6 +127,10 @@ public class DbSchenkerClient {
         }
     }
 
+    /**
+     * Handles HTTP 429 (Too Many Requests) errors that require captcha solving.
+     * Throws if max retries exceeded or captcha puzzle is missing.
+     */
     private String handleCaptchaError(HttpClientErrorException e, int retries) {
         if (e.getStatusCode() != HttpStatus.TOO_MANY_REQUESTS || retries >= maxRetries) {
             log.error("Captcha error or max retries reached: {}", e.getMessage());
@@ -118,9 +140,13 @@ public class DbSchenkerClient {
         if (captchaPuzzleBase64 == null) {
             throw new CaptchaRequiredException("Captcha required but puzzle not provided");
         }
+        // Solve captcha using the provided solver
         return captchaSolver.generateCaptcha(captchaPuzzleBase64);
     }
 
+    /**
+     * Builds HTTP headers for requests, including captcha solution if provided.
+     */
     private HttpHeaders buildHeaders(String captcha) {
         HttpHeaders headers = new HttpHeaders();
         if (captcha != null) {
