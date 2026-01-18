@@ -6,7 +6,30 @@ This application supports both **SSE** and **STDIO** connections for MCP server 
 
 ## Solution Overview
 
-This project implements an MCP server that can communicate via both SSE (Server-Sent Events) and STDIO protocols. The solution is built using Java (Spring Boot) and is designed to be easily deployable using Docker. It also supports Playwright for browser automation and testing.
+This project implements an MCP server that can communicate via both SSE (Server-Sent Events) and STDIO protocols.
+
+The solution is built using Java (Spring Boot) and is designed to be easily deployable using Docker.
+
+## Project Structure
+The solution follows the typical Java Spring project structure.
+### client
+Contains `DbSchenkerClient` class that is a client handling the communication with DbSchenker website to intercept requests and communicate with their API.
+### config
+Contains configuration files.
+### controller
+Contains `ShipmentController` that is a simple REST controller for DbSchenkerClient.
+### dto
+Contains `external` and `internal` packages. The `external` package is for external DTOs, `internal` — for internal DTOs.
+### exception
+Contains `RestExceptionHandler` which is a global exception hadnler for the REST API. Also contains custom runtime exceptions like `CaptchaRequiredException`, `ShipmentTrackingException`, or `Tracking ReferenceMissingException`.
+### mapper
+Contains the `LandSttResponseMapper` to map from and to the DTO.
+### mcp
+Contains the MCP server API.
+### util
+Contains `DbSchenkerCaptchaSolver` that allows to bypass DBSchenker bot protection.
+### tests
+Contain tests for the `DbSchenkerClient`.
 
 ## Requirements
 
@@ -29,9 +52,6 @@ docker compose up
 
 The server will be available at [http://localhost:8081](http://localhost:8081).
 
-**Note:**
-The first build may take a few minutes as it installs all dependencies and browsers.
-
 ---
 
 ### Testing with MCP Inspector
@@ -46,6 +66,7 @@ You can use [MCP Inspector](https://inspector.modelcontextprotocol.io/) to inter
 4. Use the Inspector to send requests and view structured responses from the MCP server.
 
 ![MCP Inspector Screenshot](/media/mcp-inspector.png)
+
 
 ---
 
@@ -74,55 +95,7 @@ You can use [MCP Inspector](https://inspector.modelcontextprotocol.io/) to inter
 
 ![Claude Example](/media/claude-example.png)
 
-## About `DbSchenkerClient`
+![Claude Example 2](/media/claude-example-2.png)
 
-The `DbSchenkerClient` class is responsible for fetching and parsing shipment tracking information from the DB Schenker website. Instead of using traditional HTTP clients or browserless scraping libraries, this solution uses **Playwright** to automate a real browser session. This approach is necessary because the DB Schenker website employs bot protection mechanisms that block standard HTTP requests and headless scraping tools.
-
-With Playwright, the client navigates to the tracking page and listens for specific JSON responses sent to the browser. These responses contain the shipment data, which is then parsed and mapped to internal DTOs for further processing. This method ensures reliable data extraction despite anti-bot measures on the target site.
-
-If I had more time, I might have found a more efficient solution for bypassing these protections, but I was unsuccessful during this challenge. I am aware that using Playwright for browser automation is not an optimal solution for production environments due to its resource requirements and complexity, but it was necessary here to reliably extract data from a site with strong bot protection.
-
-## About `ShipmentTool`
-
-The `ShipmentTool` class, located in the `mcp` package, encapsulates the core logic for handling MCP protocol operations within the server. It is responsible for processing shipment-related requests.
-
-This tool acts as a bridge between the business logic and the MCP interface, making it easier to maintain and extend protocol-specific functionality. By centralizing MCP operations in a dedicated class, the solution remains modular and easier to test or adapt for future protocol changes.
-
-## About DTOs
-
-The project uses Data Transfer Objects (DTOs) to structure and validate data exchanged between different layers of the application. DTOs help ensure that only relevant and properly formatted data is passed between controllers, services, and external integrations.
-
-- **external/**  
-  Contains DTOs for mapping responses from external APIs, such as DB Schenker (`LandSttResponse.java`, `ShipmentResponse.java`, `TripResponse.java`). These classes represent the structure of data received from third-party services.
-
-- **internal/**  
-  Contains DTOs for internal use within the application (`ShipmentDetailsDto.java`). These classes are used to encapsulate and transfer data between internal components, ensuring consistency and type safety.
-
-Using DTOs improves code clarity, reduces errors, and makes it easier to adapt the application to changes in external or internal data formats.
-
-## Code Quality and Modularity
-
-The codebase is designed to be modular and follows established best practices for maintainability and scalability:
-
-- **Separation of Concerns:**  
-  The application logic is divided into clear packages such as `controller`, `client`, `dto`, `exception`, and `mcp`. Each package has a distinct responsibility, making the code easier to understand and modify.
-
-- **Dependency Injection:**  
-  Spring Boot's dependency injection is used throughout the project, promoting loose coupling and easier testing.
-
-- **Configuration Profiles:**  
-  Multiple configuration files (`application.properties`, `application-sse.properties`, `application-stdio.properties`) allow for flexible environment setups and protocol switching.
-
-- **DTO Usage:**  
-  Data transfer objects are used to encapsulate and validate data exchanged between layers, improving code clarity and reducing errors.
-
-- **Exception Handling:**  
-  A global exception handler ensures consistent error responses and simplifies debugging.
-
-- **Testing:**  
-  Unit and integration tests are provided to verify core functionality and ensure reliability.
-
-- **Extensibility:**  
-  By centralizing protocol logic in classes like `ShipmentTool` and external integrations in `DbSchenkerClient`, the solution can be easily extended to support new protocols or data sources.
-
-This modular structure not only makes the codebase easier to maintain and test, but also facilitates future enhancements and team collaboration.
+## Possible Improvements
+If I had more time, I would build a local MCP connector in Go that connects a local LLM agent (such as Claude) with the Java Spring service. This approach would make it easier to add features like authentication between the LLM agent and the Java service. Using Go would keep the local process lightweight and efficient. The connector would be generated from the Java Spring OpenAPI specification, allowing the same backend to expose a REST API for human users and an MCP interface for LLMs.
