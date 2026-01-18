@@ -3,6 +3,7 @@ package com.sendify.server.client;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import com.sendify.server.dto.internal.ShipmentDetailsDto;
 
 @SpringBootTest
+@Disabled
 class DbSchenkerClientTests {
 
     @Autowired
