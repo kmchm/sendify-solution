@@ -1,8 +1,6 @@
 package com.sendify.server.client;
 
-import com.sendify.server.dto.external.LandSttResponse;
-import com.sendify.server.mapper.LandSttResponseMapper;
-import com.sendify.server.util.DbSchenkerCaptchaSolver;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -13,7 +11,10 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sendify.server.dto.external.LandSttResponse;
 import com.sendify.server.dto.internal.ShipmentDetailsDto;
+import com.sendify.server.mapper.LandSttResponseMapper;
+import com.sendify.server.util.DbSchenkerCaptchaSolver;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,13 +24,16 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DbSchenkerClient {
 
+    @Value("${dbschenker.tracking.api-base}")
+    private String trackingApiBase;
+
+    @Value("${dbschenker.tracking.max-retries}")
+    private int maxRetries;
+
     private final ObjectMapper objectMapper;
     private final RestTemplate restTemplate;
     private final LandSttResponseMapper landSttResponseMapper;
     private final DbSchenkerCaptchaSolver captchaSolver;
-
-    private static final String TRACKING_API_BASE = "https://www.dbschenker.com/nges-portal/api/public/tracking-public/shipments";
-    private static final int MAX_RETRIES = 10;
 
     public ShipmentDetailsDto trackShipment(String referenceNumber) {
         if (referenceNumber == null || referenceNumber.trim().isEmpty()) {
@@ -57,7 +61,7 @@ public class DbSchenkerClient {
             HttpEntity<Void> entity = new HttpEntity<>(headers);
 
             ResponseEntity<String> response = restTemplate.exchange(
-                    TRACKING_API_BASE + "?query=" + trackingNumber,
+                    trackingApiBase + "?query=" + trackingNumber,
                     HttpMethod.GET,
                     entity,
                     String.class
@@ -88,7 +92,7 @@ public class DbSchenkerClient {
             HttpEntity<Void> entity = new HttpEntity<>(headers);
 
             ResponseEntity<String> response = restTemplate.exchange(
-                    TRACKING_API_BASE + "/land/" + sttId,
+                    trackingApiBase + "/land/" + sttId,
                     HttpMethod.GET,
                     entity,
                     String.class
@@ -116,7 +120,7 @@ public class DbSchenkerClient {
     }
 
     private String handleCaptchaError(HttpClientErrorException e, int retries) {
-        if (e.getStatusCode() != HttpStatus.TOO_MANY_REQUESTS || retries >= MAX_RETRIES) {
+        if (e.getStatusCode() != HttpStatus.TOO_MANY_REQUESTS || retries >= maxRetries) {
             log.error("Captcha error or max retries reached: {}", e.getMessage());
             throw new RuntimeException("Failed to track shipment: " + e.getMessage(), e);
         }
