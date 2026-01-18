@@ -2,9 +2,9 @@ package com.sendify.server.client;
 
 import java.security.MessageDigest;
 import java.util.Base64;
-import java.util.List;
 
 import com.sendify.server.dto.external.LandSttResponse;
+import com.sendify.server.mapper.LandSttResponseMapper;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -27,6 +27,7 @@ public class DbSchenkerClient {
 
     private final ObjectMapper objectMapper;
     private final RestTemplate restTemplate;
+    private final LandSttResponseMapper landSttResponseMapper;
 
     private static final String TRACKING_API_BASE = "https://www.dbschenker.com/nges-portal/api/public/tracking-public/shipments";
     private static final int MAX_RETRIES = 10;
@@ -99,75 +100,13 @@ public class DbSchenkerClient {
 
             landSttResponse.getPackages().forEach(packageItem -> {
                 log.info("Package ID: {}", packageItem.getId());
-                packageItem.getEvents().forEach(packageEvent -> {
-                    log.info("[{}] {} - {}",
-                            packageEvent.getDate(),
-                            packageEvent.getCode(),
-                            packageEvent.getLocation());
-                });
+                packageItem.getEvents().forEach(packageEvent -> log.info("[{}] {} - {}",
+                        packageEvent.getDate(),
+                        packageEvent.getCode(),
+                        packageEvent.getLocation()));
             });
 
-            ShipmentDetailsDto.Party sender = ShipmentDetailsDto.Party.builder()
-                    .name(String.valueOf(landSttResponse.getReferences().getShipper()))
-                    .address(
-                            ShipmentDetailsDto.Address.builder()
-                                    .countryCode(landSttResponse.getLocation().getShipperPlace().getCountryCode())
-                                    .country(landSttResponse.getLocation().getShipperPlace().getCountry())
-                                    .city(landSttResponse.getLocation().getShipperPlace().getCity())
-                                    .postCode(landSttResponse.getLocation().getShipperPlace().getPostCode())
-                                    .build()
-                    )
-                    .build();
-
-            ShipmentDetailsDto.Party receiver = ShipmentDetailsDto.Party.builder()
-                    .name(String.valueOf(landSttResponse.getReferences().getConsignee()))
-                    .address(
-                            ShipmentDetailsDto.Address.builder()
-                                    .countryCode(landSttResponse.getLocation().getConsigneePlace().getCountryCode())
-                                    .country(landSttResponse.getLocation().getConsigneePlace().getCountry())
-                                    .city(landSttResponse.getLocation().getConsigneePlace().getCity())
-                                    .postCode(landSttResponse.getLocation().getConsigneePlace().getPostCode())
-                                    .build()
-                    )
-                    .build();
-
-            ShipmentDetailsDto.PackageDetails packageDetails = ShipmentDetailsDto.PackageDetails.builder()
-                    .pieceCount(landSttResponse.getGoods().getPieces())
-                    .weight(landSttResponse.getGoods().getWeight().getValue())
-                    .weightUnit(landSttResponse.getGoods().getWeight().getUnit())
-                    .dimensions(null)
-                    .build();
-
-            List<ShipmentDetailsDto.TrackingEvent> trackingHistory = landSttResponse.getEvents().stream()
-                    .map(event -> ShipmentDetailsDto.TrackingEvent.builder()
-                    .code(event.getCode())
-                    .date(event.getDate())
-                    .location(event.getLocation() != null ? event.getLocation().getName() : null)
-                    .comment(event.getComment())
-                    .build())
-                    .toList();
-
-            List<ShipmentDetailsDto.PackageTracking> packageTracking = landSttResponse.getPackages().stream()
-                    .map(pkg -> ShipmentDetailsDto.PackageTracking.builder()
-                    .packageId(pkg.getId())
-                    .events(pkg.getEvents().stream()
-                            .map(event -> ShipmentDetailsDto.TrackingEvent.builder()
-                            .code(event.getCode())
-                            .date(event.getDate())
-                            .location(event.getLocation() != null ? event.getLocation() : null)
-                            .comment(event.getComment())
-                            .build())
-                            .toList())
-                    .build())
-                    .toList();
-
-            return ShipmentDetailsDto.builder()
-                    .sender(sender)
-                    .receiver(receiver)
-                    .packageDetails(packageDetails)
-                    .trackingHistory(trackingHistory)
-                    .packageTracking(packageTracking)
-                    .build();
+            return landSttResponseMapper.map(landSttResponse);
 
         } catch (HttpClientErrorException e) {
             String captchaSolution = handleCaptchaError(e, retryCount);
