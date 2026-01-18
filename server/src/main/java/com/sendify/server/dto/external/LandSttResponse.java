@@ -39,7 +39,7 @@ public class LandSttResponse {
     private List<PackageItem> packages;
 
     @JsonProperty("progressBar")
-    private ProgressBar progressBar;
+    private List<ProgressBar> progressBar;
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
