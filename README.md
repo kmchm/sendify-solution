@@ -31,6 +31,35 @@ Contains `DbSchenkerCaptchaSolver` that allows to bypass DBSchenker bot protecti
 ### tests
 Contain tests for the `DbSchenkerClient`.
 
+## Possible Improvements
+If I had more time, I would build a local MCP connector in Go that connects a local LLM agent (such as Claude) with the Java Spring service. This approach would make it easier to add features like authentication between the LLM agent and the Java service. Using Go would keep the local process lightweight and efficient. The connector would be generated from the Java Spring OpenAPI specification, allowing the same backend to expose a REST API for human users and an MCP interface for LLMs.
+
+## Code Quality and Modularity
+The codebase is designed to be modular and follows established best practices for maintainability and scalability:
+
+### Separation of Concerns:
+The application logic is divided into clear packages such as controller, client, dto, exception, mapper, util, and mcp. Each package has a distinct responsibility, making the code easier to understand and modify.
+
+### Dependency Injection:
+Spring Boot's dependency injection is used throughout the project, promoting loose coupling and easier testing.
+
+### Configuration Profiles:
+Multiple configuration files (application.properties, application-sse.properties, application-stdio.properties) allow for flexible environment setups and protocol switching.
+
+### DTO Usage:
+Data transfer objects are used to encapsulate and validate data exchanged between layers, improving code clarity and reducing errors.
+
+### Exception Handling:
+A global exception handler ensures consistent error responses and simplifies debugging.
+
+### Testing:
+Unit tests are provided to verify core functionality and ensure reliability.
+
+### Extensibility:
+By centralizing protocol logic in classes like ShipmentTool and external integrations in DbSchenkerClient, the solution can be easily extended to support new protocols or data sources.
+
+This modular structure not only makes the codebase easier to maintain and test, but also facilitates future enhancements and team collaboration.
+
 ## Requirements
 
 -   **[Java 21 (Oracle JDK)](https://www.oracle.com/java/technologies/downloads/#jdk21-mac)**
@@ -96,6 +125,3 @@ You can use [MCP Inspector](https://inspector.modelcontextprotocol.io/) to inter
 ![Claude Example](/media/claude-example.png)
 
 ![Claude Example 2](/media/claude-example-2.png)
-
-## Possible Improvements
-If I had more time, I would build a local MCP connector in Go that connects a local LLM agent (such as Claude) with the Java Spring service. This approach would make it easier to add features like authentication between the LLM agent and the Java service. Using Go would keep the local process lightweight and efficient. The connector would be generated from the Java Spring OpenAPI specification, allowing the same backend to expose a REST API for human users and an MCP interface for LLMs.
