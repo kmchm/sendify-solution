@@ -14,21 +14,68 @@ The solution is built using Java (Spring Boot) and is designed to be easily depl
 The solution follows the typical Java Spring project structure.
 ### client
 Contains `DbSchenkerClient` class that is a client handling the communication with DbSchenker website to intercept requests and communicate with their API.
-### config
+
+#### 1. Tracking Request Initiation
+- The process starts with `trackShipment(String referenceNumber)`.
+- If the reference number is missing or empty, a `TrackingReferenceMissingException` is thrown.
+
+#### 2. STT Number Query
+- Calls `sttNumberQuery(trackingNumber, 0, null)` to get the internal shipment ID (`sttId`).
+- Builds HTTP headers (optionally with a captcha solution).
+- Sends a GET request to the DB Schenker tracking API with the reference number.
+- Parses the response to extract the `sttId`.
+
+#### 3. Handling Captcha Challenges
+- If the API responds with HTTP 429 (Too Many Requests), it likely requires a captcha solution.
+- The `handleCaptchaError` method:
+  - Checks if the maximum retry count is reached.
+  - Extracts the `captcha-puzzle` header from the response.
+  - Uses `DbSchenkerCaptchaSolver.generateCaptcha()` to solve the captcha.
+  - Retries the request with the captcha solution.
+
+#### 4. Shipment Query
+- Calls `shipmentQuery(sttId, 0, null)` to get detailed shipment information.
+- Builds HTTP headers (optionally with a captcha solution).
+- Sends a GET request to the API for shipment details.
+- Parses the response into a `LandSttResponse` object.
+- Logs package and event details.
+- Maps the response to an internal DTO (`ShipmentDetailsDto`) using `LandSttResponseMapper`.
+
+#### 5. Captcha Solving Logic
+
+#### `DbSchenkerCaptchaSolver.generateCaptcha(String captchaPuzzleBase64)`:
+- Decodes the base64-encoded captcha puzzle.
+- Splits it into JWT tokens.
+- For each JWT:
+  - Decodes the payload to extract the puzzle.
+  - Solves the puzzle using `solvePuzzle(byte[] puzzleArray)`.
+  - Collects the JWT and its solution.
+- Encodes the solutions as a base64 JSON string for the API.
+
+#### `solvePuzzle(byte[] puzzleArray)`:
+- Extracts difficulty parameters from the puzzle.
+- Iterates over possible nonce values to find one that, when hashed with the puzzle, meets the difficulty requirement.
+- Returns the base64-encoded solution.
+
+#### 6. Error Handling
+- If any step fails (other than captcha), a `ShipmentTrackingException` is thrown.
+- If captcha cannot be solved or the puzzle is missing, a `CaptchaRequiredException` is thrown.
+
+### config package
 Contains configuration files.
-### controller
+### controller package
 Contains `ShipmentController` that is a simple REST controller for DbSchenkerClient.
-### dto
+### dto package
 Contains `external` and `internal` packages. The `external` package is for external DTOs, `internal` — for internal DTOs.
-### exception
+### exception package
 Contains `RestExceptionHandler` which is a global exception hadnler for the REST API. Also contains custom runtime exceptions like `CaptchaRequiredException`, `ShipmentTrackingException`, or `Tracking ReferenceMissingException`.
-### mapper
+### mapper package
 Contains the `LandSttResponseMapper` to map from and to the DTO.
-### mcp
+### mcp package
 Contains the MCP server API.
-### util
+### util package
 Contains `DbSchenkerCaptchaSolver` that allows to bypass DBSchenker bot protection.
-### tests
+### tests package
 Contain tests for the `DbSchenkerClient`.
 
 ## Possible Improvements
