@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.util.Base64;
 import java.util.ArrayList;
@@ -77,9 +78,9 @@ public class DbSchenkerCaptchaSolver {
         // Calculate the exponent for the target: r = 8 * (t13 - 3)
         int r = 8 * (t13 - 3);
         // o = 2^r
-        java.math.BigInteger o = java.math.BigInteger.valueOf(2).pow(r);
+        BigInteger o = BigInteger.valueOf(2).pow(r);
         // targetDifficulty = t14 * o
-        java.math.BigInteger targetDifficulty = java.math.BigInteger.valueOf(t14).multiply(o);
+        BigInteger targetDifficulty = BigInteger.valueOf(t14).multiply(o);
 
         int nonceValue = 0;
         byte[] foundSolution = null;
@@ -88,7 +89,7 @@ public class DbSchenkerCaptchaSolver {
             // Convert the integer nonce to an 8-byte little-endian array
             byte[] nonceArray = generateNonceArray(nonceValue);
             // Calculate the double SHA-256 hash and compare to the target
-            java.math.BigInteger hashResult = calculateHashValue(nonceArray, puzzleArray);
+            BigInteger hashResult = calculateHashValue(nonceArray, puzzleArray);
             if (hashResult.compareTo(targetDifficulty) < 0) {
                 foundSolution = nonceArray;
                 break;
@@ -129,7 +130,7 @@ public class DbSchenkerCaptchaSolver {
      *   4. Reverse the resulting 32-byte hash (to match endianness).
      *   5. Convert the reversed hash to a positive BigInteger.
      */
-    private java.math.BigInteger calculateHashValue(byte[] nonceArray, byte[] puzzleArray) {
+    private BigInteger calculateHashValue(byte[] nonceArray, byte[] puzzleArray) {
         try {
             // Concatenate puzzle and nonce
             byte[] combined = new byte[40];
@@ -149,7 +150,7 @@ public class DbSchenkerCaptchaSolver {
             }
 
             // Convert to BigInteger for comparison (positive value)
-            return new java.math.BigInteger(1, reversed);
+            return new BigInteger(1, reversed);
         } catch (Exception e) {
             log.error("Hash calculation failed: {}", e.getMessage(), e);
             throw new RuntimeException("Hash calculation failed", e);
