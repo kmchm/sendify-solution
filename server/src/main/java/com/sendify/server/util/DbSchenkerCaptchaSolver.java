@@ -7,6 +7,9 @@ import org.springframework.stereotype.Component;
 
 import java.security.MessageDigest;
 import java.util.Base64;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -24,7 +27,7 @@ public class DbSchenkerCaptchaSolver {
             // Decode the base64-encoded string to get the comma-separated JWTs
             String decoded = new String(Base64.getDecoder().decode(captchaPuzzleBase64));
             String[] jwtTokens = decoded.split(",");
-            var solutions = new java.util.ArrayList<java.util.Map<String, String>>();
+            var solutions = new ArrayList<Map<String, String>>();
 
             for (String jwt : jwtTokens) {
                 // JWT format: header.payload.signature (we only need the payload)
@@ -42,7 +45,7 @@ public class DbSchenkerCaptchaSolver {
                 byte[] puzzleBytes = Base64.getDecoder().decode(puzzleB64);
                 // Solve the puzzle to get the nonce solution
                 String solution = solvePuzzle(puzzleBytes);
-                java.util.Map<String, String> entry = new java.util.HashMap<>();
+                Map<String, String> entry = new HashMap<>();
                 entry.put("jwt", jwt);
                 entry.put("solution", solution);
                 solutions.add(entry);
