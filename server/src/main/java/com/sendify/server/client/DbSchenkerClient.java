@@ -106,15 +106,6 @@ public class DbSchenkerClient {
 
             LandSttResponse landSttResponse = objectMapper.readValue(landJson, LandSttResponse.class);
 
-            // Log package and event details for debugging
-            landSttResponse.getPackages().forEach(packageItem -> {
-                log.info("Package ID: {}", packageItem.getId());
-                packageItem.getEvents().forEach(packageEvent -> log.info("[{}] {} - {}",
-                        packageEvent.getDate(),
-                        packageEvent.getCode(),
-                        packageEvent.getLocation()));
-            });
-
             // Map external response to internal DTO
             return landSttResponseMapper.map(landSttResponse);
 
